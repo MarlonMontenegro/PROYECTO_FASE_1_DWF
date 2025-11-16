@@ -37,10 +37,3 @@ git clone https://github.com/tu-usuario/DWF2.git
 mvn clean install
 mvn spring-boot:run
 
-
-🤝 Integrantes:
-
-- Denilson Emmanuel Chávez Cruz	CC161302
-- Ángel Marcelo Delgado Estrada	DE241507
-- Fabricio Antonio Castro Martinez CM240137
-- José Alonso Aguirre Márquez AM241838
