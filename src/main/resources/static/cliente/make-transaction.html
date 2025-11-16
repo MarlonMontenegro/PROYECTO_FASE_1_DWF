@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realizar Transferencia</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar .profile-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-bottom: 30px;
+            border: 3px solid white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .sidebar .profile-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .sidebar .nav-link {
+            display: block;
+            width: 80%;
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 15px;
+            border-radius: 30px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        .sidebar .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+        .sidebar .logout-btn {
+            margin-top: auto;
+            margin-bottom: 30px;
+            width: 80%;
+            background-color: #ff4757;
+            border: none;
+            color: white;
+            padding: 12px;
+            border-radius: 30px;
+            text-align: center;
+            font-size: 15px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .sidebar .logout-btn:hover {
+            background-color: #ff6b81;
+            transform: translateY(-2px);
+        }
+        .main-content {
+            padding: 40px;
+        }
+        .transaction-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            background: white;
+        }
+        .card-header {
+            background: linear-gradient(to right, #667eea, #764ba2);
+            color: white;
+            font-weight: 600;
+            border-bottom: none;
+            padding: 20px;
+        }
+        .form-control {
+            border-radius: 50px;
+            padding: 15px 20px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s;
+        }
+        .form-control:focus {
+            border-color: #764ba2;
+            box-shadow: 0 0 0 0.2rem rgba(118, 75, 162, 0.25);
+        }
+        .btn-transfer {
+            background: linear-gradient(to right, #667eea, #764ba2);
+            border: none;
+            border-radius: 50px;
+            padding: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s;
+        }
+        .btn-transfer:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+        .input-group-text {
+            border-radius: 50px 0 0 50px;
+            background-color: #f8f9fa;
+        }
+        .input-group .form-control {
+            border-radius: 0 50px 50px 0;
+        }
+        .account-option {
+            padding: 10px;
+        }
+        .form-section {
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+<div class="d-flex">
+    <div class="sidebar">
+        <img src="/img/clientpfp.png" alt="Imagen de perfil" class="profile-img" onclick="window.location.href='/client/dashboard'">
+        <a href="/client/make-transaction" class="nav-link"><i class="fas fa-exchange-alt"></i> Realizar transferencia</a>
+        <a href="/client/deposit-funds" class="nav-link"><i class="fas fa-coins"></i> Depositar fondos</a>
+        <a href="/client/withdraw-funds" class="nav-link"><i class="fas fa-hand-holding-usd"></i> Retirar fondos</a>
+        <a href="/client/transaction-history" class="nav-link"><i class="fas fa-history"></i> Historial</a>
+        <button class="logout-btn" onclick="window.location.href='/logout'"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
+    </div>
+    <div class="main-content flex-grow-1">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="transaction-card">
+                    <div class="card-header">
+                        <h4 class="mb-0"><i class="fas fa-exchange-alt mr-2"></i>Realizar Transferencia</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="transaction-form">
+                            <!-- Tipo de Transacción -->
+                            <div class="form-section">
+                                <label for="transaction-type" class="form-label">Tipo de Transferencia</label>
+                                <select class="form-control" id="transaction-type" name="transactionType" required>
+                                    <option value="" disabled selected>Seleccione el tipo</option>
+                                    <option value="own">Entre mis cuentas</option>
+                                    <option value="other">A otro cliente</option>
+                                    <option value="external">A cuenta externa</option>
+                                </select>
+                            </div>
+
+                            <!-- Cuenta de Origen -->
+                            <div class="form-section">
+                                <label for="from-account-select" class="form-label">Cuenta de Origen</label>
+                                <select class="form-control" id="from-account-select" required>
+                                    <option value="" disabled selected>Seleccione su cuenta</option>
+                                    <!-- Cuentas se cargarán dinámicamente -->
+                                </select>
+                            </div>
+
+                            <!-- Cuenta Destino: Mis Cuentas -->
+                            <div id="own-account-group" class="form-section" style="display: none;">
+                                <label for="own-account-select" class="form-label">Cuenta Destino</label>
+                                <select class="form-control" id="own-account-select">
+                                    <option value="" disabled selected>Seleccione su cuenta</option>
+                                    <!-- Cuentas se cargarán dinámicamente -->
+                                </select>
+                            </div>
+
+                            <!-- Cuenta Destino: Otros Usuarios -->
+                            <div id="other-account-group" class="form-section" style="display: none;">
+                                <label for="other-account" class="form-label">Número de Cuenta Destino</label>
+                                <input type="text" class="form-control" id="other-account" placeholder="Ingrese número de cuenta" />
+                                <small class="form-text text-muted">Ejemplo: 12345678</small>
+                            </div>
+
+                            <!-- Cuenta Destino: Externas -->
+                            <div id="external-account-group" class="form-section" style="display: none;">
+                                <label for="external-account" class="form-label">Número de Cuenta Externa</label>
+                                <input type="text" class="form-control" id="external-account" placeholder="Ingrese número de cuenta externa"/>
+                                <small class="form-text text-muted">Solo números, sin guiones</small>
+                            </div>
+
+                            <!-- Monto -->
+                            <div class="form-section">
+                                <label for="transaction-amount" class="form-label">Monto a Transferir</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">$</span>
+                                    </div>
+                                    <input type="number" class="form-control" id="transaction-amount" step="0.01" placeholder="0.00" required />
+                                </div>
+                            </div>
+
+                            <!-- Botón de Transferencia -->
+                            <div class="form-section">
+                                <button type="submit" class="btn btn-transfer btn-block mt-3">
+                                    <i class="fas fa-paper-plane mr-2"></i>Realizar Transferencia
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Función para formatear el número de cuenta
+    function formatAccountNumber(accountNumber) {
+        return accountNumber.replace(/(\d{4})(?=\d)/g, '$1-');
+    }
+
+    // Obtener el usuario actual y sus cuentas
+    axios.get('/api/users/current')
+        .then(response => {
+            const userEmail = response.data.email;
+            const userName = response.data.name;
+
+            axios.get(`/api/account/${encodeURIComponent(userEmail)}`)
+                .then(response => {
+                    const accounts = response.data;
+                    const fromAccountSelect = document.getElementById('from-account-select');
+                    const ownAccountSelect = document.getElementById('own-account-select');
+
+                    if (accounts.length === 0) {
+                        fromAccountSelect.innerHTML = '<option value="">No tienes cuentas</option>';
+                        ownAccountSelect.innerHTML = '<option value="">No tienes cuentas</option>';
+                    } else {
+                        accounts.forEach(account => {
+                            const optionFrom = document.createElement('option');
+                            optionFrom.value = account.accountNumber;
+                            optionFrom.textContent = `${formatAccountNumber(account.accountNumber)} - $${account.balance.toFixed(2)}`;
+                            fromAccountSelect.appendChild(optionFrom.cloneNode(true));
+                            ownAccountSelect.appendChild(optionFrom);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al cargar cuentas:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudieron cargar tus cuentas. Intenta más tarde.',
+                    });
+                });
+        })
+        .catch(error => {
+            console.error('Error al obtener usuario:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo cargar tu información. Intenta más tarde.',
+            });
+        });
+
+    // Mostrar campos según tipo de transferencia
+    document.getElementById('transaction-type').addEventListener('change', function() {
+        const type = this.value;
+        document.getElementById('own-account-group').style.display = type === 'own' ? 'block' : 'none';
+        document.getElementById('other-account-group').style.display = type === 'other' ? 'block' : 'none';
+        document.getElementById('external-account-group').style.display = type === 'external' ? 'block' : 'none';
+    });
+
+    // Validar y enviar transferencia
+    document.getElementById('transaction-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const fromAccount = document.getElementById('from-account-select').value;
+        const type = document.getElementById('transaction-type').value;
+        const amount = parseFloat(document.getElementById('transaction-amount').value);
+        let toAccount;
+
+        // Obtener cuenta destino según tipo
+        if (type === 'own') {
+            toAccount = document.getElementById('own-account-select').value;
+            if (fromAccount === toAccount) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Cuentas iguales',
+                    text: 'No puedes transferir a la misma cuenta de origen',
+                });
+                return;
+            }
+        } else if (type === 'other') {
+            toAccount = document.getElementById('other-account').value;
+            if (!/^\d{8,}$/.test(toAccount)) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Cuenta inválida',
+                    text: 'El número de cuenta debe tener al menos 8 dígitos',
+                });
+                return;
+            }
+        } else if (type === 'external') {
+            toAccount = document.getElementById('external-account').value;
+            if (!/^\d{10,}$/.test(toAccount)) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Cuenta inválida',
+                    text: 'El número de cuenta externa debe tener al menos 10 dígitos',
+                });
+                return;
+            }
+        }
+
+        // Validaciones generales
+        if (!fromAccount || !toAccount || amount <= 0 || isNaN(amount)) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Datos incompletos',
+                text: 'Verifica los datos ingresados',
+            });
+            return;
+        }
+
+        // Confirmación antes de transferir
+        Swal.fire({
+            title: 'Confirmar Transferencia',
+            html: `¿Deseas transferir <b>$${amount.toFixed(2)}</b> a la cuenta <b>${formatAccountNumber(toAccount)}</b>?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Confirmar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                axios.post('/api/transaction/transfer', {
+                    accountNumber: fromAccount,
+                    accountNumberTo: toAccount,
+                    amount: amount
+                })
+                    .then(response => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Transferencia exitosa!',
+                            html: `Se transfirieron <b>$${amount.toFixed(2)}</b> a la cuenta <b>${formatAccountNumber(toAccount)}</b>`,
+                            confirmButtonText: 'Aceptar'
+                        }).then(() => {
+                            location.reload();
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        const errorMsg = error.response?.data || 'Error al procesar la transferencia';
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: errorMsg,
+                        });
+                    });
+            }
+        });
+    });
+</script>
+</body>
+</html>

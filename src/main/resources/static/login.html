@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio de Sesión</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Montserrat', sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        .login-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        .card-header {
+            background: #fff;
+            border-bottom: none;
+            padding: 30px;
+            text-align: center;
+        }
+        .card-body {
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        .form-control {
+            border-radius: 50px;
+            padding: 15px 20px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s;
+        }
+        .form-control:focus {
+            border-color: #764ba2;
+            box-shadow: none;
+        }
+        .btn-login {
+            background: linear-gradient(to right, #667eea, #764ba2);
+            border: none;
+            border-radius: 50px;
+            padding: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .login-title {
+            color: #764ba2;
+            font-weight: 600;
+            margin-bottom: 0;
+        }
+        .register-link {
+            color: #764ba2;
+            font-weight: 600;
+        }
+        .register-link:hover {
+            text-decoration: none;
+            color: #667eea;
+        }
+    </style>
+    <script>
+        function submitLoginForm() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            axios.post('/api/users/login', {
+                email: email,
+                password: password
+            })
+                .then(response => {
+                    if (response.status === 200) {
+
+                        const userRole = response.data.role;
+                        console.log("userRole 1: "+userRole);
+                        // Display SweetAlert confirmation
+                        Swal.fire({
+                            title: '¡Éxito!',
+                            text: `¡Inicio de sesión exitoso! Tu rol es ${userRole}`,
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            // Redirect to their respective dashboards
+                            console.log("userRole: "+userRole);
+                            switch (userRole) {
+                                case 'CLIENT':
+                                    window.location.href = '/client/dashboard';
+                                    break;
+                                case 'DEPENDIENTE':
+                                    window.location.href = '/dependiente/dashboard';
+                                    break;
+                                case 'CAJERO':
+                                    window.location.href = '/cajero/dashboard';
+                                    break;
+                                case 'GERENTE_SUCURSAL':
+                                    window.location.href = '/gerente_sucursal/dashboard';
+                                    break;
+                                case 'GERENTE_GENERAL':
+                                    window.location.href = '/gerente_general/dashboard';
+                                    break;
+                                default:
+                                    window.location.href = '/unauthorized';
+                            }// Fallback for unknown roles
+                        });
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('error-message').innerText = 'Credenciales inválidas';
+                    console.error('Login error:', error);
+                    // Display SweetAlert error
+                    Swal.fire({
+                        title: '¡Error!',
+                        text: 'Credenciales de inicio de sesión inválidas.',
+                        icon: 'error',
+                        confirmButtonText: 'Intentar nuevamente'
+                    });
+                });
+        }
+    </script>
+</head>
+<body>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card login-card">
+                <div class="card-header text-center">
+                    <h3 class="login-title">Banco de Agricultura Salvadoreño SA de CV</h3>
+                </div>
+                <div class="card-body">
+                    <form onsubmit="event.preventDefault(); submitLoginForm();">
+                        <div class="form-group">
+                            <label for="email">Correo electrónico</label>
+                            <input type="email" class="form-control" id="email" placeholder="Ingresa tu correo" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Contraseña</label>
+                            <input type="password" class="form-control" id="password" placeholder="Ingresa tu contraseña" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block btn-login">Iniciar Sesión</button>
+                        <div class="text-center mt-3">
+                            <span>¿No tienes una cuenta? </span>
+                            <a id="register" href="/register" class="register-link">Regístrate aquí</a>
+                        </div>
+                    </form>
+                    <div id="error-message" class="text-danger mt-3 text-center"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

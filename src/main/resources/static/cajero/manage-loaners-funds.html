@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel del Cajero</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js"></script>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar .profile-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-bottom: 30px;
+            border: 3px solid white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .sidebar .profile-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .sidebar .nav-link {
+            display: block;
+            width: 80%;
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 15px;
+            border-radius: 30px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        .sidebar .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+        .sidebar .logout-btn {
+            margin-top: auto;
+            margin-bottom: 30px;
+            width: 80%;
+            background-color: #ff4757;
+            border: none;
+            color: white;
+            padding: 12px;
+            border-radius: 30px;
+            text-align: center;
+            font-size: 15px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .sidebar .logout-btn:hover {
+            background-color: #ff6b81;
+            transform: translateY(-2px);
+        }
+        .main-content {
+            padding: 30px;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .account-card {
+            background: white;
+            overflow: hidden;
+        }
+        .account-card .card-title {
+            color: #343a40;
+            font-weight: 600;
+        }
+        .account-card .balance {
+            font-size: 18px;
+            font-weight: 700;
+            color: #28a745;
+        }
+        .btn-primary {
+            background: linear-gradient(to right, #667eea, #764ba2);
+            border: none;
+            border-radius: 50px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        .btn-success {
+            background: linear-gradient(to right, #28a745, #218838);
+            border: none;
+            border-radius: 50px;
+        }
+        .welcome-title {
+            color: #343a40;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+        .section-title {
+            color: #495057;
+            font-weight: 500;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        .section-title:after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(to right, #667eea, #764ba2);
+            border-radius: 3px;
+        }
+        .form-control {
+            border-radius: 50px;
+            padding: 10px 20px;
+        }
+        #user-details {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body>
+<div class="d-flex">
+    <div class="sidebar">
+        <img src="/img/clientpfp.png" alt="Imagen de perfil" class="profile-img" onclick="window.location.href='/cajero/dashboard'">
+        <a href="/cajero/manage-loans" class="nav-link"><i class="fas fa-exchange-alt"></i> Gestionar dinero</a>
+        <a href="/cajero/open-loan" class="nav-link"><i class="fas fa-plus-circle"></i> Nuevo préstamo</a>
+        <a href="/cajero/register-client" class="nav-link"><i class="fas fa-users"></i> Registrar cliente</a>
+        <button class="logout-btn" onclick="window.location.href='/logout'"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
+    </div>
+    <div class="flex-grow-1 main-content">
+        <h2 class="welcome-title">Gestión de Fondos de Clientes</h2>
+
+        <!-- Formulario de Búsqueda -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form id="search-form" class="mb-3">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" id="search-key" placeholder="Ingrese DUI, Email o Número de Cuenta" required>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary w-100">Buscar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sección de Información del Usuario -->
+        <div id="user-details" class="card mb-4" style="display: none;">
+            <div class="card-body">
+                <h3 id="user-name"></h3>
+                <p id="user-email"></p>
+            </div>
+        </div>
+
+        <!-- Sección de Cuentas -->
+        <div id="accounts-container" class="row">
+            <!-- Las cuentas aparecerán aquí dinámicamente -->
+        </div>
+
+        <!-- Modal para Depósito -->
+        <div class="modal fade" id="depositModal" tabindex="-1" aria-labelledby="depositModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="depositModalLabel">Depositar Fondos</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="deposit-form">
+                            <input type="hidden" id="deposit-account-number">
+                            <div class="mb-3">
+                                <label for="deposit-amount" class="form-label">Monto a Depositar</label>
+                                <input type="number" step="0.01" class="form-control" id="deposit-amount" placeholder="Ingrese el monto" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Depositar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    // Función para cargar las cuentas del cliente
+    function cargarCuentas() {
+        event.preventDefault();
+
+        const searchKey = document.getElementById('search-key').value.trim();
+
+        if (!searchKey) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Entrada Inválida',
+                text: 'Por favor ingrese un DUI, Email o Número de Cuenta válido.',
+            });
+            return;
+        }
+
+        // Obtener información del usuario basada en la clave de búsqueda
+        axios.get(`/api/users/search?key=${encodeURIComponent(searchKey)}`)
+            .then(response => {
+                const user = response.data;
+                const accounts = user.accounts;
+
+                // Mostrar detalles del usuario
+                document.getElementById('user-name').textContent = `Cliente: ${user.name}`;
+                document.getElementById('user-email').textContent = `Email: ${user.email}`;
+                document.getElementById('user-details').style.display = 'block';
+
+                // Limpiar cuentas existentes
+                const accountsContainer = document.getElementById('accounts-container');
+                accountsContainer.innerHTML = '';
+
+                // Verificar si hay cuentas
+                if (accounts.length === 0) {
+                    accountsContainer.innerHTML = '<div class="col-12"><p>No se encontraron cuentas para este cliente.</p></div>';
+                } else {
+                    // Mostrar cada cuenta
+                    mostrarCuentas(accounts);
+                }
+            })
+            .catch(error => {
+                console.error('Error al buscar usuario:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo encontrar el cliente. Verifique los datos e intente nuevamente.',
+                });
+            });
+    }
+
+    // Función para mostrar las cuentas
+    function mostrarCuentas(accounts) {
+        const container = document.getElementById('accounts-container');
+        container.innerHTML = '';
+
+        accounts.forEach(account => {
+            const col = document.createElement('div');
+            col.classList.add('col-md-6', 'mb-4');
+
+            const accountCard = document.createElement('div');
+            accountCard.classList.add('card', 'account-card');
+            accountCard.innerHTML = `
+                <div class="card-body">
+                    <h5 class="card-title">Número de Cuenta: ${account.accountNumber}</h5>
+                    <p class="card-text">Saldo: <span class="balance">$${account.balance.toFixed(2)}</span></p>
+                    <button class="btn btn-success deposit-btn" data-account="${account.accountNumber}">
+                        <i class="fas fa-coins mr-2"></i>Depositar
+                    </button>
+                </div>
+            `;
+            col.appendChild(accountCard);
+            container.appendChild(col);
+        });
+
+        // Agregar eventos a los botones de depósito
+        document.querySelectorAll('.deposit-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const accountNumber = this.getAttribute('data-account');
+                document.getElementById('deposit-account-number').value = accountNumber;
+                $('#depositModal').modal('show');
+            });
+        });
+    }
+
+    // Función para procesar depósitos
+    function procesarDeposito(event) {
+        event.preventDefault();
+
+        const accountNumber = document.getElementById('deposit-account-number').value;
+        const depositAmount = parseFloat(document.getElementById('deposit-amount').value);
+
+        if (!depositAmount || depositAmount <= 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Monto Inválido',
+                text: 'Por favor ingrese un monto positivo para el depósito.',
+            });
+            return;
+        }
+
+        axios.post('/api/transaction/deposit', {
+            accountNumber: accountNumber,
+            amount: depositAmount
+        })
+            .then(response => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Depósito Exitoso',
+                    text: `Se depositaron $${depositAmount.toFixed(2)} en la cuenta ${accountNumber}.`,
+                }).then(() => {
+                    $('#depositModal').modal('hide');
+                    document.getElementById('deposit-form').reset();
+                    cargarCuentas();
+                });
+            })
+            .catch(error => {
+                console.error('Error al procesar depósito:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error en Depósito',
+                    text: error.response?.data || 'Ocurrió un error. Por favor intente nuevamente.',
+                });
+            });
+    }
+
+    // Event listeners
+    document.getElementById('search-form').addEventListener('submit', cargarCuentas);
+    document.getElementById('deposit-form').addEventListener('submit', procesarDeposito);
+</script>
+</body>
+</html>

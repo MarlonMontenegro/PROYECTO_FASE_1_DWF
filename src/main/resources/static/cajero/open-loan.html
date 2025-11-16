@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel del Cajero - Nuevo Préstamo</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar .profile-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-bottom: 30px;
+            border: 3px solid white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .sidebar .profile-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .sidebar .nav-link {
+            display: block;
+            width: 80%;
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 15px;
+            border-radius: 30px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        .sidebar .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+        .sidebar .logout-btn {
+            margin-top: auto;
+            margin-bottom: 30px;
+            width: 80%;
+            background-color: #ff4757;
+            border: none;
+            color: white;
+            padding: 12px;
+            border-radius: 30px;
+            text-align: center;
+            font-size: 15px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .sidebar .logout-btn:hover {
+            background-color: #ff6b81;
+            transform: translateY(-2px);
+        }
+        .main-content {
+            padding: 30px;
+        }
+        .loan-form-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        .form-title {
+            color: #343a40;
+            font-weight: 600;
+            margin-bottom: 30px;
+            text-align: center;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        .form-title:after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(to right, #667eea, #764ba2);
+            border-radius: 3px;
+            transform: translateX(-50%);
+        }
+        .form-control {
+            border-radius: 50px;
+            padding: 12px 20px;
+            border: 1px solid #e9ecef;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .form-control[readonly] {
+            background-color: #f8f9fa;
+        }
+        .btn-primary {
+            background: linear-gradient(to right, #667eea, #764ba2);
+            border: none;
+            border-radius: 50px;
+            padding: 12px 30px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            margin-top: 20px;
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        .form-group label {
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+        .calculation-results {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .calculation-results h5 {
+            color: #495057;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+<div class="d-flex">
+    <div class="sidebar">
+        <img src="/img/clientpfp.png" alt="Imagen de perfil" class="profile-img" onclick="window.location.href='/cajero/dashboard'">
+        <a href="/cajero/manage-loans" class="nav-link"><i class="fas fa-exchange-alt"></i> Gestionar dinero</a>
+        <a href="/cajero/open-loan" class="nav-link active"><i class="fas fa-plus-circle"></i> Nuevo préstamo</a>
+        <a href="/cajero/register-client" class="nav-link"><i class="fas fa-users"></i> Registrar cliente</a>
+        <button class="logout-btn" onclick="window.location.href='/logout'"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
+    </div>
+    <div class="flex-grow-1 main-content">
+        <div class="loan-form-container">
+            <h2 class="form-title">Apertura de Nuevo Préstamo</h2>
+            <form id="loan-form">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="client-email">Correo Electrónico del Cliente</label>
+                            <input type="email" class="form-control" id="client-email" placeholder="Ingrese el correo del cliente" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="salary">Salario Mensual del Cliente ($)</label>
+                            <input type="number" class="form-control" id="salary" placeholder="Ingrese el salario mensual" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="loan-amount">Monto del Préstamo ($)</label>
+                            <input type="number" class="form-control" id="loan-amount" placeholder="Ingrese el monto del préstamo" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="calculation-results">
+                    <h5>Detalles del Préstamo</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="interest-rate">Tasa de Interés (%)</label>
+                                <input type="text" class="form-control" id="interest-rate" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="monthly-payment">Pago Mensual ($)</label>
+                                <input type="text" class="form-control" id="monthly-payment" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="term-in-years">Plazo (Años)</label>
+                                <input type="text" class="form-control" id="term-in-years" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Crear Préstamo</button>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    // Calcular detalles del préstamo cuando cambia el salario o el monto
+    document.getElementById('salary').addEventListener('input', calcularDetallesPrestamo);
+    document.getElementById('loan-amount').addEventListener('input', calcularDetallesPrestamo);
+
+    function calcularDetallesPrestamo() {
+        const salario = parseFloat(document.getElementById('salary').value);
+        const montoPrestamo = parseFloat(document.getElementById('loan-amount').value);
+
+        // Reiniciar campos si los valores no son válidos
+        if (!salario || salario <= 0 || !montoPrestamo || montoPrestamo <= 0) {
+            reiniciarCampos();
+            return;
+        }
+
+        // Definir reglas del préstamo basadas en el salario
+        let maximoPrestamo = 0;
+        let tasaInteres = 0;
+
+        if (salario < 365) {
+            maximoPrestamo = 10000;
+            tasaInteres = 3;
+        } else if (salario < 600) {
+            maximoPrestamo = 25000;
+            tasaInteres = 3;
+        } else if (salario < 900) {
+            maximoPrestamo = 35000;
+            tasaInteres = 4;
+        } else if (salario >= 1000) {
+            maximoPrestamo = 50000;
+            tasaInteres = 5;
+        }
+
+        // Validar el monto del préstamo
+        if (montoPrestamo > maximoPrestamo) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Límite Excedido',
+                text: `El monto del préstamo no puede exceder $${maximoPrestamo}.`,
+            });
+            document.getElementById('loan-amount').setCustomValidity(`El monto excede el máximo permitido ($${maximoPrestamo}).`);
+            reiniciarCampos();
+            return;
+        } else {
+            document.getElementById('loan-amount').setCustomValidity('');
+        }
+
+        // Calcular pago mensual (30% del salario) y plazo
+        const pagoMensual = salario * 0.3; // 30% del salario mensual
+        const plazoAnios = Math.ceil(montoPrestamo / (pagoMensual * 12)); // Años para pagar
+
+        // Actualizar campos del formulario
+        document.getElementById('interest-rate').value = `${tasaInteres}%`;
+        document.getElementById('monthly-payment').value = `$${pagoMensual.toFixed(2)}`;
+        document.getElementById('term-in-years').value = plazoAnios;
+    }
+
+    function reiniciarCampos() {
+        document.getElementById('interest-rate').value = '';
+        document.getElementById('monthly-payment').value = '';
+        document.getElementById('term-in-years').value = '';
+    }
+
+    // Manejar el envío del formulario
+    document.getElementById('loan-form').addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        const emailCliente = document.getElementById('client-email').value;
+        const salario = parseFloat(document.getElementById('salary').value);
+        const montoPrestamo = parseFloat(document.getElementById('loan-amount').value);
+        const tasaInteres = parseFloat(document.getElementById('interest-rate').value.replace('%', ''));
+        const pagoMensual = parseFloat(document.getElementById('monthly-payment').value.replace('$', ''));
+        const plazoAnios = parseInt(document.getElementById('term-in-years').value);
+
+        if (!emailCliente || montoPrestamo <= 0 || isNaN(montoPrestamo) || isNaN(tasaInteres) || isNaN(plazoAnios) || isNaN(pagoMensual)) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Datos Inválidos',
+                text: 'Por favor complete todos los campos con valores válidos.',
+            });
+            return;
+        }
+
+        // Enviar la solicitud de creación de préstamo al servidor
+        axios.post('/api/loans/create', {
+            email: emailCliente,
+            salary: salario,
+            amount: montoPrestamo,
+            interestRate: tasaInteres,
+            monthlyPayment: pagoMensual,
+            termInYears: plazoAnios,
+        })
+            .then(response => {
+                const prestamo = response.data;
+
+                // Mostrar notificación de éxito con detalles del préstamo
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Préstamo Creado Exitosamente',
+                    html: `
+                        <div class="text-left">
+                            <p><strong>ID del Préstamo:</strong> ${prestamo.id}</p>
+                            <p><strong>Cliente:</strong> ${prestamo.email}</p>
+                            <p><strong>Monto:</strong> $${prestamo.amount.toFixed(2)}</p>
+                            <p><strong>Tasa de Interés:</strong> ${prestamo.interestRate}%</p>
+                            <p><strong>Pago Mensual:</strong> $${prestamo.monthlyPayment.toFixed(2)}</p>
+                            <p><strong>Plazo:</strong> ${prestamo.termInYears} años</p>
+                            <p><strong>Fecha de Inicio:</strong> ${new Date(prestamo.startDate).toLocaleDateString()}</p>
+                        </div>
+                    `,
+                    confirmButtonText: 'Aceptar'
+                }).then(() => {
+                    location.reload(); // Recargar la página después de crear el préstamo
+                });
+            })
+            .catch(error => {
+                console.error('Error al crear préstamo:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al Crear Préstamo',
+                    text: error.response ? error.response.data : 'Ocurrió un error. Por favor intente nuevamente.',
+                });
+            });
+    });
+</script>
+</body>
+</html>

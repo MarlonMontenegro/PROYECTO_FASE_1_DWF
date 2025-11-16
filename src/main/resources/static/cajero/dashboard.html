@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel del Cajero</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar .profile-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-bottom: 30px;
+            border: 3px solid white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .sidebar .profile-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .sidebar .nav-link {
+            display: block;
+            width: 80%;
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 15px;
+            border-radius: 30px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        .sidebar .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+        .sidebar .logout-btn {
+            margin-top: auto;
+            margin-bottom: 30px;
+            width: 80%;
+            background-color: #ff4757;
+            border: none;
+            color: white;
+            padding: 12px;
+            border-radius: 30px;
+            text-align: center;
+            font-size: 15px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .sidebar .logout-btn:hover {
+            background-color: #ff6b81;
+            transform: translateY(-2px);
+        }
+        .main-content {
+            padding: 30px;
+        }
+        .account-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+            margin-bottom: 20px;
+            overflow: hidden;
+            background: white;
+        }
+        .account-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .account-card .card-body {
+            padding: 25px;
+        }
+        .account-card .card-title {
+            color: #343a40;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        .account-card .card-text {
+            font-size: 18px;
+        }
+        .account-card .balance {
+            font-size: 24px;
+            font-weight: 700;
+            color: #28a745;
+        }
+        .btn-add-account {
+            background: linear-gradient(to right, #667eea, #764ba2);
+            border: none;
+            border-radius: 50px;
+            padding: 12px 25px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .btn-add-account:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        .welcome-title {
+            color: #343a40;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+        .section-title {
+            color: #495057;
+            font-weight: 500;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        .section-title:after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(to right, #667eea, #764ba2);
+            border-radius: 3px;
+        }
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        .table thead th {
+            background: linear-gradient(to right, #667eea, #764ba2);
+            color: white;
+            border: none;
+        }
+        .table tbody tr:hover {
+            background-color: rgba(102, 126, 234, 0.1);
+        }
+    </style>
+</head>
+<body>
+<div class="d-flex">
+    <div class="sidebar">
+        <img src="/img/clientpfp.png" alt="Imagen de perfil" class="profile-img" onclick="window.location.href='/cajero/dashboard'">
+        <a href="/cajero/manage-loans" class="nav-link"><i class="fas fa-exchange-alt"></i> Gestionar dinero</a>
+        <a href="/cajero/open-loan" class="nav-link"><i class="fas fa-plus-circle"></i> Nuevo préstamo</a>
+        <a href="/cajero/register-client" class="nav-link"><i class="fas fa-users"></i> Registrar cliente</a>
+        <button class="logout-btn" onclick="window.location.href='/logout'"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
+    </div>
+    <div class="flex-grow-1 main-content">
+        <h2 class="welcome-title" id="welcome-sign">Listado de Préstamos</h2>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>ID Préstamo</th>
+                    <th>Monto</th>
+                    <th>Tasa de Interés (%)</th>
+                    <th>Plazo (Años)</th>
+                    <th>Pago Mensual</th>
+                    <th>Estado</th>
+                </tr>
+                </thead>
+                <tbody id="loan-list">
+                <!-- Las filas de préstamos aparecerán aquí -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script>
+    // Función para formatear el número de cuenta en grupos de 3 dígitos
+    function formatAccountNumber(accountNumber) {
+        return accountNumber.replace(/(\d{3})(?=\d)/g, '$1-');
+    }
+
+    // Obtener el email y DUI del usuario actualmente logueado
+    axios.get('/api/users/current')
+        .then(response => {
+            const userEmail = response.data.email;
+            const userDui = response.data.dui;
+            const userName = response.data.name;
+
+            // Actualizar el mensaje de bienvenida
+            document.getElementById('welcome-sign').textContent = `Bienvenido ${userName}, Listado de Préstamos`;
+
+            // Obtener y mostrar los préstamos
+            axios.get('/api/loans')
+                .then(response => {
+                    const loans = response.data;
+                    const loanList = document.getElementById('loan-list');
+
+                    loans.forEach(loan => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${loan.id}</td>
+                            <td>$${loan.amount.toFixed(2)}</td>
+                            <td>${loan.interestRate.toFixed(2)}</td>
+                            <td>${loan.termInYears}</td>
+                            <td>$${loan.monthlyPayment.toFixed(2)}</td>
+                            <td>${loan.status}</td>
+                        `;
+                        loanList.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error al obtener préstamos:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudieron cargar los préstamos'
+                    });
+                });
+        })
+        .catch(error => {
+            console.error('Error al obtener detalles del usuario:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudieron cargar los datos del usuario'
+            });
+        });
+
+    // Función para crear una nueva cuenta con un número de cuenta aleatorio y DUI
+    function createNewAccount(userEmail, userDui) {
+        const randomAccountNumber = Math.floor(10000000 + Math.random() * 90000000).toString();
+
+        axios.post('/api/account', {
+            accountNumber: randomAccountNumber,
+            userEmail: userEmail,
+            balance: 0.0,
+            dui: userDui
+        })
+            .then(response => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Nueva Cuenta Creada',
+                    text: `La cuenta número ${formatAccountNumber(randomAccountNumber)} ha sido creada exitosamente.`,
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    location.reload();
+                });
+            })
+            .catch(error => {
+                console.error('Error al crear nueva cuenta:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al Crear Cuenta',
+                    text: error.response ? error.response.data : 'Ocurrió un error desconocido',
+                    confirmButtonText: 'Intentar Nuevamente'
+                });
+            });
+    }
+</script>
+</body>
+</html>

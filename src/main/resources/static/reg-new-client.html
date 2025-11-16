@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Usuario</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .register-container {
+            max-width: 500px;
+            margin: auto;
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        .form-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #343a40;
+            font-weight: 600;
+        }
+        .form-title i {
+            color: #764ba2;
+            margin-right: 10px;
+        }
+        .form-control {
+            border-radius: 50px;
+            padding: 15px 20px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s;
+        }
+        .form-control:focus {
+            border-color: #764ba2;
+            box-shadow: 0 0 0 0.2rem rgba(118, 75, 162, 0.25);
+        }
+        .btn-register {
+            background: linear-gradient(to right, #667eea, #764ba2);
+            border: none;
+            border-radius: 50px;
+            padding: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s;
+        }
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .login-link {
+            color: #764ba2;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .login-link:hover {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .input-group-text {
+            border-radius: 50px 0 0 50px;
+            background-color: #f8f9fa;
+        }
+        .password-strength {
+            height: 5px;
+            margin-top: 5px;
+            border-radius: 5px;
+            background-color: #e9ecef;
+            overflow: hidden;
+        }
+        .strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="register-container">
+        <h2 class="form-title"><i class="fas fa-user-plus"></i> Crear Cuenta</h2>
+        <form onsubmit="registrarUsuario(event)">
+            <div class="form-group">
+                <label for="name">Nombre Completo</label>
+                <input type="text" class="form-control" id="name" placeholder="Ingrese su nombre completo" required>
+            </div>
+
+            <div class="form-group">
+                <label for="dui">DUI</label>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                    </div>
+                    <input type="text" class="form-control" id="dui" placeholder="00000000-0" required>
+                </div>
+                <small class="form-text text-muted">Formato: 8 dígitos, guión y 1 dígito</small>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Correo Electrónico</label>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                    </div>
+                    <input type="email" class="form-control" id="email" placeholder="ejemplo@dominio.com"
+                           pattern="^[^@\s]+@[^@\s]+\.[^@\s]+$" title="Por favor ingrese un correo válido" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                    </div>
+                    <input type="password" class="form-control" id="password" placeholder="Cree una contraseña segura" required>
+                </div>
+                <div class="password-strength">
+                    <div class="strength-bar" id="password-strength-bar"></div>
+                </div>
+                <small class="form-text text-muted">Mínimo 8 caracteres</small>
+            </div>
+
+            <button type="submit" class="btn btn-register btn-block mt-4">
+                <i class="fas fa-user-check mr-2"></i>Registrarse
+            </button>
+        </form>
+
+        <div class="text-center mt-4">
+            <a href="/login" class="login-link"><i class="fas fa-sign-in-alt mr-2"></i>¿Ya tienes cuenta? Inicia sesión</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Validación de DUI en tiempo real
+    document.getElementById('dui').addEventListener('input', function (event) {
+        // Aplicar formato DUI: XXXXXXXX-X
+        let value = this.value.replace(/[^0-9-]/g, ''); // Solo números y guión
+        value = value.replace(/^(\d{8})(\d)/, '$1-$2'); // Agregar guión después de 8 números
+        if (value.length > 10) value = value.slice(0, 10); // Limitar a 10 caracteres
+        this.value = value;
+    });
+
+    // Indicador de fortaleza de contraseña
+    document.getElementById('password').addEventListener('input', function() {
+        const password = this.value;
+        const strengthBar = document.getElementById('password-strength-bar');
+        let strength = 0;
+
+        // Evaluar fortaleza
+        if (password.length > 0) strength += 20;
+        if (password.length >= 8) strength += 20;
+        if (/[A-Z]/.test(password)) strength += 20;
+        if (/[0-9]/.test(password)) strength += 20;
+        if (/[^A-Za-z0-9]/.test(password)) strength += 20;
+
+        // Actualizar barra visual
+        strengthBar.style.width = strength + '%';
+        strengthBar.style.backgroundColor = strength < 40 ? '#dc3545' :
+            strength < 80 ? '#ffc107' : '#28a745';
+    });
+
+    function registrarUsuario(event) {
+        event.preventDefault();
+
+        const name = document.getElementById('name').value.trim();
+        const dui = document.getElementById('dui').value;
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+
+        // Validar formato de DUI
+        if (!/^\d{8}-\d$/.test(dui)) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'DUI Inválido',
+                text: 'Por favor ingrese un DUI válido con formato 00000000-0',
+                confirmButtonText: 'Entendido'
+            });
+            return;
+        }
+
+        // Validar longitud mínima de contraseña
+        if (password.length < 8) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Contraseña Débil',
+                text: 'La contraseña debe tener al menos 8 caracteres',
+                confirmButtonText: 'Entendido'
+            });
+            return;
+        }
+
+        // Mostrar confirmación antes de registrar
+        Swal.fire({
+            title: 'Confirmar Registro',
+            html: `¿Desea crear una cuenta con el correo <b>${email}</b>?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Confirmar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                axios.post('/api/users/register', {
+                    name: name,
+                    dui: dui,
+                    email: email,
+                    password: password,
+                    role: 'CLIENT'  // Rol predeterminado
+                })
+                    .then(response => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Registro Exitoso!',
+                            html: `Bienvenido <b>${name}</b>, tu cuenta ha sido creada correctamente.`,
+                            confirmButtonText: 'Iniciar Sesión'
+                        }).then(() => {
+                            window.location.href = '/login';
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error en registro:', error);
+                        const errorMsg = error.response?.data || 'Ocurrió un error al registrar. Intente nuevamente.';
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error en Registro',
+                            text: errorMsg,
+                            confirmButtonText: 'Entendido'
+                        });
+                    });
+            }
+        });
+    }
+</script>
+</body>
+</html>
